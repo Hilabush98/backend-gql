@@ -1,0 +1,20 @@
+input inputGroupsProfiles {
+  group_id: ID!
+  profile_id: ID!
+  created_by: String
+  is_active: Boolean
+  modified_by: String
+}
+type GroupsProfiles {
+  group_id: ID!
+  profile_id: ID!
+  created_on: String
+  created_by: String
+  modified_on: String
+  modified_by: String
+  is_active: Boolean
+}
+
+extend type Query {
+  getAllGroupsProfiles: [GroupsProfiles] @hasPermission(actions: ["R", "*"])
+}

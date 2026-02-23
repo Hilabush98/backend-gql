@@ -1,0 +1,8 @@
+input inputEmpleado {
+  id: ID!
+  nombre: String!
+}
+type Empleado {
+  id: ID!
+  nombre: String!
+}

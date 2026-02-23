@@ -1,0 +1,28 @@
+input inputProfilesTools {
+  profile_id: ID!
+  tool_id: ID!
+  name: String
+  description: String
+  order_by: String
+  created_by: String
+  operations: String
+  is_active: Boolean
+}
+type ProfilesTools {
+  profile_id: ID!
+  profile:Profile!
+  tool_id: ID!
+  tool: Tool! 
+  created_on: String
+  created_by: String
+  modified_on: String
+  modified_by: String
+  is_active: Boolean
+  operations: String
+}
+
+extend type Query {
+  updatePermissionCache: [ProfilesTools] @hasPermission(actions: ["U", "*"])
+  getAllProfilesTools: [ProfilesTools] @hasPermission(actions: ["R", "*"])
+
+}

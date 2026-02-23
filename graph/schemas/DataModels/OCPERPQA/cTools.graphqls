@@ -1,0 +1,18 @@
+type Tool {
+  tool_id: ID!
+  tool_id_Father: String
+  name: String
+  description: String
+  order_by: String
+  created_on: String
+  created_by: String
+  modified_on: String
+  modified_by: String
+  is_active: Boolean
+  configuration: String
+  path: String
+}
+
+extend type Query {
+  getAllTools: [Tool] @hasPermission(actions: ["R", "*"])
+}

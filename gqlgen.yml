@@ -1,0 +1,28 @@
+# 1. Dónde está tu archivo de diseño
+schema:
+  - graph/**/*.graphqls
+
+# 2. Configuración del motor interno
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+# 3. Configuración de los structs de datos
+model:
+  filename: graph/model/models_gen.go
+  package: model
+
+# 4. Configuración de los resolvers (donde escribes tu código)
+resolver:
+  layout: follow-schema
+  dir: graph/resolvers
+  package: graph
+
+models:
+  ProfilesTools:
+    fields:
+      tool:
+        resolver: true
+      profile:
+        resolver: true
+# Opcional: Esto evita que cree archivos de prueba que a veces estorban

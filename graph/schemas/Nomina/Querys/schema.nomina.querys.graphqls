@@ -1,0 +1,8 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+extend type Query {
+  Empleado: [Empleado!]!
+  getAllEmpleados: [Empleado!]
+}

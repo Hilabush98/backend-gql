@@ -1,0 +1,23 @@
+input inputProfile {
+  profile_id: ID!
+  name: String
+  description: String
+  order_by: String
+  created_by: String
+  is_active: Boolean
+}
+type Profile {
+  profile_id: ID!
+  name: String
+  description: String
+  order_by: String
+  created_on: String
+  created_by: String
+  modified_on: String
+  modified_by: String
+  is_active: Boolean
+}
+
+extend type Query {
+  getAllProfiles: [Profile] @hasPermission(actions: ["R", "*"])
+}

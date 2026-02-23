@@ -1,0 +1,23 @@
+input inputGroup {
+  group_id: ID!
+  name: String
+  description: String
+  order_by: String
+  created_by: String
+  is_active: Boolean
+}
+type Group {
+  group_id: ID!
+  name: String
+  description: String
+  order_by: String
+  created_on: String
+  created_by: String
+  modified_on: String
+  modified_by: String
+  is_active: Boolean
+}
+
+extend type Query {
+  getAllGroups: [Group] @hasPermission(actions: ["R", "*"])
+}
