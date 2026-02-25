@@ -8,35 +8,11 @@ package graph
 import (
 	"backend-gql/graph/model"
 	"context"
-	"fmt"
-	"log"
 )
 
 // GetAllProfiles is the resolver for the getAllProfiles field.
 func (r *queryResolver) GetAllProfiles(ctx context.Context) ([]*model.Profile, error) {
-	fmt.Println("Se ejecuta Get all")
-
-	query := `
-	SELECT PROFILE_ID, NAME, DESCRIPTION, ORDER_BY, CREATED_ON, CREATED_BY, MODIFIED_ON, MODIFIED_BY, IS_ACTIVE FROM C_PROFILES
-	`
-	var data []*model.Profile
-	rows, err := r.DB.Query(query)
-	if err != nil {
-		log.Fatalf("Error ejecutando query: %v", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var p model.Profile
-
-		if err := rows.Scan(&p.ProfileID, &p.Name,
-			&p.Description, &p.OrderBy, &p.CreatedOn,
-			&p.CreatedBy, &p.ModifiedOn, &p.ModifiedBy, &p.IsActive); err != nil {
-			log.Println("Error al leer: ", err.Error())
-			continue
-		}
-		data = append(data, &p)
-	}
+	data := r.ProfilesCache.GetAllProfiles()
 
 	return data, nil
 }

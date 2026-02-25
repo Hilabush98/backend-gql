@@ -11,8 +11,10 @@ import (
 // here.
 
 type Resolver struct {
-	PermissionCache *cache.PermissionHashMap
+	RProfilesTools  *cache.RProfilesToolsMap
 	ToolsCache      *cache.CToolsMap
-	ProfilesCache   *cache.CProfileMap
+	ProfilesCache   *cache.CProfilesMap
+	GroupsCache     *cache.CGroupsMap
+	RGroupsProfiles *cache.RGroupsProfilesMap
 	DB              *sql.DB
 }

@@ -7,21 +7,21 @@ import (
 	"sync"
 )
 
-var GlobalMatrixcProfile *CProfileMap
+var GlobalMatrixcProfiles *CProfilesMap
 
-type CProfileMap struct {
-	profiles map[string]model.Profile
+type CProfilesMap struct {
+	Profiles map[string]model.Profile
 	mu       sync.RWMutex
 }
 
-func InitProfilesMap() *CProfileMap {
-	return &CProfileMap{
-		profiles: make(map[string]model.Profile),
+func InitProfilesMap() *CProfilesMap {
+	return &CProfilesMap{
+		Profiles: make(map[string]model.Profile),
 	}
 }
-func (p *CProfileMap) LoadFromDB(db *sql.DB) error {
+func (p *CProfilesMap) LoadFromDB(db *sql.DB) error {
 
-	query := `SELECT PROFILE_ID, NAME, DESCRIPTION, CREATED_ON, CREATED_BY, MODIFIED_ON, MODIFIED_BY, ORDER_BY, IS_ACTIVE FROM c_profiles WHERE IS_ACTIVE =1 `
+	query := `SELECT Profile_ID, NAME, DESCRIPTION, CREATED_ON, CREATED_BY, MODIFIED_ON, MODIFIED_BY, ORDER_BY, IS_ACTIVE FROM c_Profiles WHERE IS_ACTIVE =1 `
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -32,42 +32,70 @@ func (p *CProfileMap) LoadFromDB(db *sql.DB) error {
 	newProfiles := make(map[string]model.Profile)
 
 	for rows.Next() {
-		// Instancia del modelo Tool (GQLGen genera este struct)
-		t := model.Profile{}
-
-		// 3. Scan exacto según el orden del SELECT
-		// Nota: Asegúrate de que los tipos en model.Tool coincidan (string, int, etc)
-
+		var profileId string
+		var createdOn, name, orderBy, createdBy, modifiedOn, modifiedBy, description *string
+		var isActive bool
 		err := rows.Scan(
-			&t.ProfileID,
-			&t.Name,
-			&t.Description,
-			&t.CreatedOn,
-			&t.CreatedBy,
-			&t.ModifiedOn,
-			&t.ModifiedBy,
-			&t.OrderBy,
-			&t.IsActive,
+			&profileId,
+			&name,
+			&description,
+			&createdOn,
+			&createdBy,
+			&modifiedOn,
+			&modifiedBy,
+			&orderBy,
+			&isActive,
 		)
 		if err != nil {
 			return err
 		}
 
+		t := model.Profile{
+			ProfileID:   profileId,
+			Name:        NilValidate(name),
+			OrderBy:     NilValidate(orderBy),
+			CreatedOn:   createdOn,
+			CreatedBy:   NilValidate(createdBy),
+			ModifiedOn:  modifiedOn,
+			ModifiedBy:  NilValidate(modifiedBy),
+			Description: NilValidate(description),
+			IsActive:    &isActive,
+		}
 		newProfiles[t.ProfileID] = t
 	}
 
 	p.mu.Lock()
-	p.profiles = newProfiles
+	p.Profiles = newProfiles
 	p.mu.Unlock()
 
 	return nil
 
 }
-
-func (p *CProfileMap) PrintMapTool() {
+func (p *CProfilesMap) GetAllProfiles() []*model.Profile {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	for id, t := range p.profiles {
+	profileArray := make([]*model.Profile, 0, len(p.Profiles))
+	for id, g := range p.Profiles {
+		newGroup := model.Profile{
+			ProfileID:   id,
+			Name:        g.Name,
+			Description: g.Description,
+			CreatedBy:   g.CreatedBy,
+			CreatedOn:   g.CreatedOn,
+			ModifiedBy:  g.ModifiedBy,
+			ModifiedOn:  g.ModifiedOn,
+			OrderBy:     g.OrderBy,
+			IsActive:    g.IsActive,
+		}
+		profileArray = append(profileArray, &newGroup)
+	}
+	return profileArray
+}
+
+func (p *CProfilesMap) PrintMapTool() {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	for id, t := range p.Profiles {
 
 		log.Println("ID: ", id)
 		log.Println("Name: ", *t.Name)
@@ -84,10 +112,10 @@ func (p *CProfileMap) PrintMapTool() {
 	}
 }
 
-func (m *CProfileMap) LookIncProfileById(id string) model.Profile {
+func (m *CProfilesMap) GetcProfilesById(id string) model.Profile {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return m.profiles[id]
+	return m.Profiles[id]
 }
 
 //AREGLAR DESPUES

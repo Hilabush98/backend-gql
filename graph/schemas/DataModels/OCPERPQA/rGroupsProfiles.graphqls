@@ -7,7 +7,9 @@ input inputGroupsProfiles {
 }
 type GroupsProfiles {
   group_id: ID!
+  group:Group!
   profile_id: ID!
+  profile:Profile!
   created_on: String
   created_by: String
   modified_on: String

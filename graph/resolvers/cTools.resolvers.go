@@ -8,10 +8,11 @@ package graph
 import (
 	"backend-gql/graph/model"
 	"context"
-	"fmt"
 )
 
 // GetAllTools is the resolver for the getAllTools field.
 func (r *queryResolver) GetAllTools(ctx context.Context) ([]*model.Tool, error) {
-	panic(fmt.Errorf("not implemented: GetAllTools - getAllTools"))
+	tools := r.ToolsCache.GetAllTools()
+
+	return tools, nil
 }

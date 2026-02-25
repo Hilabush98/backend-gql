@@ -6,7 +6,7 @@ input inputUsersProfiles {
   modified_by: String
 }
 type UsersProfiles {
-  group_id: ID!
+  user_id: ID!
   profile_id: ID!
   created_on: String
   created_by: String
@@ -15,6 +15,4 @@ type UsersProfiles {
   is_active: Boolean
 }
 
-extend type Query {
-  getAllUsersProfiles: [UsersProfiles] @hasPermission(actions: ["R", "*"])
-}
+

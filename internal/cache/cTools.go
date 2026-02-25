@@ -32,31 +32,42 @@ func (p *CToolsMap) LoadFromDB(db *sql.DB) error {
 	newTools := make(map[string]model.Tool)
 
 	for rows.Next() {
-		// Instancia del modelo Tool (GQLGen genera este struct)
-		t := model.Tool{}
-
-		// 3. Scan exacto según el orden del SELECT
-		// Nota: Asegúrate de que los tipos en model.Tool coincidan (string, int, etc)
-
+		var toolId, configuration string
+		var createdOn, name, path, orderBy, createdBy, modifiedOn, modifiedBy, description, toolIdFather *string
+		var isActive bool
 		err := rows.Scan(
-			&t.ToolID,
-			&t.ToolIDFather,
-			&t.Name,
-			&t.Description,
-			&t.OrderBy,
-			&t.CreatedOn,
-			&t.CreatedBy,
-			&t.ModifiedOn,
-			&t.ModifiedBy,
-			&t.IsActive,
-			&t.Configuration,
-			&t.Path,
+			&toolId,
+			&toolIdFather,
+			&name,
+			&description,
+			&orderBy,
+			&createdOn,
+			&createdBy,
+			&modifiedOn,
+			&modifiedBy,
+			&isActive,
+			&configuration,
+			&path,
 		)
 		if err != nil {
 			return err
 		}
+		t := model.Tool{
+			ToolID:        toolId,
+			ToolIDFather:  NilValidate(toolIdFather),
+			Name:          NilValidate(name),
+			Description:   NilValidate(description),
+			OrderBy:       NilValidate(orderBy),
+			CreatedOn:     NilValidate(createdOn),
+			CreatedBy:     NilValidate(createdBy),
+			ModifiedOn:    NilValidate(modifiedOn),
+			ModifiedBy:    NilValidate(modifiedBy),
+			IsActive:      &isActive,
+			Configuration: &configuration,
+			Path:          NilValidate(path),
+		}
 
-		newTools[t.ToolID] = t
+		newTools[toolId] = t
 	}
 
 	p.mu.Lock()
@@ -89,10 +100,34 @@ func (p *CToolsMap) PrintMapTool() {
 	}
 }
 
-func (m *CToolsMap) LookIncToolsById(id string) model.Tool {
+func (m *CToolsMap) GetToolsById(id string) model.Tool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.tools[id]
+}
+func (t *CToolsMap) GetAllTools() []*model.Tool {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	toolArray := make([]*model.Tool, 0, len(t.tools))
+	for id, g := range t.tools {
+		newTool := model.Tool{
+			ToolID:        id,
+			ToolIDFather:  g.ToolIDFather,
+			Name:          g.Name,
+			Description:   g.Description,
+			OrderBy:       g.OrderBy,
+			CreatedOn:     g.CreatedOn,
+			CreatedBy:     g.CreatedBy,
+			ModifiedOn:    g.ModifiedOn,
+			ModifiedBy:    g.ModifiedBy,
+			IsActive:      g.IsActive,
+			Configuration: g.Configuration,
+			Path:          g.Path,
+		}
+		toolArray = append(toolArray, &newTool)
+	}
+	return toolArray
+
 }
 
 //AREGLAR DESPUES

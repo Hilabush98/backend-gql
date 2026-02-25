@@ -25,4 +25,9 @@ models:
         resolver: true
       profile:
         resolver: true
-# Opcional: Esto evita que cree archivos de prueba que a veces estorban
+  GroupsProfiles:
+    fields:
+      group:
+        resolver: true
+      profile:
+        resolver: true

@@ -14,19 +14,19 @@ import (
 
 // Profile is the resolver for the profile field.
 func (r *profilesToolsResolver) Profile(ctx context.Context, obj *model.ProfilesTools) (*model.Profile, error) {
-	profile := r.ProfilesCache.LookIncProfileById(obj.ProfileID)
+	profile := r.ProfilesCache.GetcProfilesById(obj.ProfileID)
 	return &profile, nil
 }
 
 // Tool is the resolver for the tool field.
 func (r *profilesToolsResolver) Tool(ctx context.Context, obj *model.ProfilesTools) (*model.Tool, error) {
-	tool := r.ToolsCache.LookIncToolsById(obj.ToolID)
+	tool := r.ToolsCache.GetToolsById(obj.ToolID)
 	return &tool, nil
 }
 
 // UpdatePermissionCache is the resolver for the updatePermissionCache field.
 func (r *queryResolver) UpdatePermissionCache(ctx context.Context) ([]*model.ProfilesTools, error) {
-	data, err := r.PermissionCache.UpdateMatrix(r.DB)
+	data, err := r.RProfilesTools.UpdateMatrix(r.DB)
 	if err != nil {
 		return nil, fmt.Errorf("error:", err)
 	}
@@ -36,7 +36,8 @@ func (r *queryResolver) UpdatePermissionCache(ctx context.Context) ([]*model.Pro
 
 // GetAllProfilesTools is the resolver for the getAllProfilesTools field.
 func (r *queryResolver) GetAllProfilesTools(ctx context.Context) ([]*model.ProfilesTools, error) {
-	panic(fmt.Errorf("not implemented: GetAllProfilesTools - getAllProfilesTools"))
+	elements := r.RProfilesTools.GetAllProfilesTools()
+	return elements, nil
 }
 
 // ProfilesTools returns generated.ProfilesToolsResolver implementation.

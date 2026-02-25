@@ -38,6 +38,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	GroupsProfiles() GroupsProfilesResolver
 	Mutation() MutationResolver
 	ProfilesTools() ProfilesToolsResolver
 	Query() QueryResolver
@@ -68,10 +69,12 @@ type ComplexityRoot struct {
 	GroupsProfiles struct {
 		CreatedBy  func(childComplexity int) int
 		CreatedOn  func(childComplexity int) int
+		Group      func(childComplexity int) int
 		GroupID    func(childComplexity int) int
 		IsActive   func(childComplexity int) int
 		ModifiedBy func(childComplexity int) int
 		ModifiedOn func(childComplexity int) int
+		Profile    func(childComplexity int) int
 		ProfileID  func(childComplexity int) int
 	}
 
@@ -112,7 +115,6 @@ type ComplexityRoot struct {
 		GetAllProfiles        func(childComplexity int) int
 		GetAllProfilesTools   func(childComplexity int) int
 		GetAllTools           func(childComplexity int) int
-		GetAllUsersProfiles   func(childComplexity int) int
 		UpdatePermissionCache func(childComplexity int) int
 	}
 
@@ -134,14 +136,19 @@ type ComplexityRoot struct {
 	UsersProfiles struct {
 		CreatedBy  func(childComplexity int) int
 		CreatedOn  func(childComplexity int) int
-		GroupID    func(childComplexity int) int
 		IsActive   func(childComplexity int) int
 		ModifiedBy func(childComplexity int) int
 		ModifiedOn func(childComplexity int) int
 		ProfileID  func(childComplexity int) int
+		UserID     func(childComplexity int) int
 	}
 }
 
+type GroupsProfilesResolver interface {
+	Group(ctx context.Context, obj *model.GroupsProfiles) (*model.Group, error)
+
+	Profile(ctx context.Context, obj *model.GroupsProfiles) (*model.Profile, error)
+}
 type MutationResolver interface {
 	CreateEmpleado(ctx context.Context, input model.InputEmpleado) (*model.Empleado, error)
 }
@@ -157,7 +164,6 @@ type QueryResolver interface {
 	GetAllGroupsProfiles(ctx context.Context) ([]*model.GroupsProfiles, error)
 	UpdatePermissionCache(ctx context.Context) ([]*model.ProfilesTools, error)
 	GetAllProfilesTools(ctx context.Context) ([]*model.ProfilesTools, error)
-	GetAllUsersProfiles(ctx context.Context) ([]*model.UsersProfiles, error)
 	Empleado(ctx context.Context) ([]*model.Empleado, error)
 	GetAllEmpleados(ctx context.Context) ([]*model.Empleado, error)
 }
@@ -261,6 +267,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.GroupsProfiles.CreatedOn(childComplexity), true
+	case "GroupsProfiles.group":
+		if e.complexity.GroupsProfiles.Group == nil {
+			break
+		}
+
+		return e.complexity.GroupsProfiles.Group(childComplexity), true
 	case "GroupsProfiles.group_id":
 		if e.complexity.GroupsProfiles.GroupID == nil {
 			break
@@ -285,6 +297,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.GroupsProfiles.ModifiedOn(childComplexity), true
+	case "GroupsProfiles.profile":
+		if e.complexity.GroupsProfiles.Profile == nil {
+			break
+		}
+
+		return e.complexity.GroupsProfiles.Profile(childComplexity), true
 	case "GroupsProfiles.profile_id":
 		if e.complexity.GroupsProfiles.ProfileID == nil {
 			break
@@ -462,12 +480,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.GetAllTools(childComplexity), true
-	case "Query.getAllUsersProfiles":
-		if e.complexity.Query.GetAllUsersProfiles == nil {
-			break
-		}
-
-		return e.complexity.Query.GetAllUsersProfiles(childComplexity), true
 	case "Query.updatePermissionCache":
 		if e.complexity.Query.UpdatePermissionCache == nil {
 			break
@@ -560,12 +572,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.UsersProfiles.CreatedOn(childComplexity), true
-	case "UsersProfiles.group_id":
-		if e.complexity.UsersProfiles.GroupID == nil {
-			break
-		}
-
-		return e.complexity.UsersProfiles.GroupID(childComplexity), true
 	case "UsersProfiles.is_active":
 		if e.complexity.UsersProfiles.IsActive == nil {
 			break
@@ -590,6 +596,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.UsersProfiles.ProfileID(childComplexity), true
+	case "UsersProfiles.user_id":
+		if e.complexity.UsersProfiles.UserID == nil {
+			break
+		}
+
+		return e.complexity.UsersProfiles.UserID(childComplexity), true
 
 	}
 	return 0, false
@@ -779,7 +791,9 @@ extend type Query {
 }
 type GroupsProfiles {
   group_id: ID!
+  group:Group!
   profile_id: ID!
+  profile:Profile!
   created_on: String
   created_by: String
   modified_on: String
@@ -828,7 +842,7 @@ extend type Query {
   modified_by: String
 }
 type UsersProfiles {
-  group_id: ID!
+  user_id: ID!
   profile_id: ID!
   created_on: String
   created_by: String
@@ -837,9 +851,7 @@ type UsersProfiles {
   is_active: Boolean
 }
 
-extend type Query {
-  getAllUsersProfiles: [UsersProfiles] @hasPermission(actions: ["R", "*"])
-}
+
 `, BuiltIn: false},
 	{Name: "../schemas/DataModels/directives.schema.graphqls", Input: `directive @hasPermission(actions: [String!]!) on FIELD_DEFINITION
 `, BuiltIn: false},
@@ -1305,6 +1317,55 @@ func (ec *executionContext) fieldContext_GroupsProfiles_group_id(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _GroupsProfiles_group(ctx context.Context, field graphql.CollectedField, obj *model.GroupsProfiles) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GroupsProfiles_group,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.GroupsProfiles().Group(ctx, obj)
+		},
+		nil,
+		ec.marshalNGroup2ᚖbackendᚑgqlᚋgraphᚋmodelᚐGroup,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GroupsProfiles_group(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GroupsProfiles",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "group_id":
+				return ec.fieldContext_Group_group_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Group_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Group_description(ctx, field)
+			case "order_by":
+				return ec.fieldContext_Group_order_by(ctx, field)
+			case "created_on":
+				return ec.fieldContext_Group_created_on(ctx, field)
+			case "created_by":
+				return ec.fieldContext_Group_created_by(ctx, field)
+			case "modified_on":
+				return ec.fieldContext_Group_modified_on(ctx, field)
+			case "modified_by":
+				return ec.fieldContext_Group_modified_by(ctx, field)
+			case "is_active":
+				return ec.fieldContext_Group_is_active(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Group", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GroupsProfiles_profile_id(ctx context.Context, field graphql.CollectedField, obj *model.GroupsProfiles) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1329,6 +1390,55 @@ func (ec *executionContext) fieldContext_GroupsProfiles_profile_id(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GroupsProfiles_profile(ctx context.Context, field graphql.CollectedField, obj *model.GroupsProfiles) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_GroupsProfiles_profile,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.GroupsProfiles().Profile(ctx, obj)
+		},
+		nil,
+		ec.marshalNProfile2ᚖbackendᚑgqlᚋgraphᚋmodelᚐProfile,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_GroupsProfiles_profile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GroupsProfiles",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "profile_id":
+				return ec.fieldContext_Profile_profile_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Profile_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Profile_description(ctx, field)
+			case "order_by":
+				return ec.fieldContext_Profile_order_by(ctx, field)
+			case "created_on":
+				return ec.fieldContext_Profile_created_on(ctx, field)
+			case "created_by":
+				return ec.fieldContext_Profile_created_by(ctx, field)
+			case "modified_on":
+				return ec.fieldContext_Profile_modified_on(ctx, field)
+			case "modified_by":
+				return ec.fieldContext_Profile_modified_by(ctx, field)
+			case "is_active":
+				return ec.fieldContext_Profile_is_active(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Profile", field.Name)
 		},
 	}
 	return fc, nil
@@ -2374,8 +2484,12 @@ func (ec *executionContext) fieldContext_Query_getAllGroupsProfiles(_ context.Co
 			switch field.Name {
 			case "group_id":
 				return ec.fieldContext_GroupsProfiles_group_id(ctx, field)
+			case "group":
+				return ec.fieldContext_GroupsProfiles_group(ctx, field)
 			case "profile_id":
 				return ec.fieldContext_GroupsProfiles_profile_id(ctx, field)
+			case "profile":
+				return ec.fieldContext_GroupsProfiles_profile(ctx, field)
 			case "created_on":
 				return ec.fieldContext_GroupsProfiles_created_on(ctx, field)
 			case "created_by":
@@ -2526,69 +2640,6 @@ func (ec *executionContext) fieldContext_Query_getAllProfilesTools(_ context.Con
 				return ec.fieldContext_ProfilesTools_operations(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ProfilesTools", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_getAllUsersProfiles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_getAllUsersProfiles,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().GetAllUsersProfiles(ctx)
-		},
-		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
-			directive0 := next
-
-			directive1 := func(ctx context.Context) (any, error) {
-				actions, err := ec.unmarshalNString2ᚕstringᚄ(ctx, []any{"R", "*"})
-				if err != nil {
-					var zeroVal []*model.UsersProfiles
-					return zeroVal, err
-				}
-				if ec.directives.HasPermission == nil {
-					var zeroVal []*model.UsersProfiles
-					return zeroVal, errors.New("directive hasPermission is not implemented")
-				}
-				return ec.directives.HasPermission(ctx, nil, directive0, actions)
-			}
-
-			next = directive1
-			return next
-		},
-		ec.marshalOUsersProfiles2ᚕᚖbackendᚑgqlᚋgraphᚋmodelᚐUsersProfiles,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_getAllUsersProfiles(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "group_id":
-				return ec.fieldContext_UsersProfiles_group_id(ctx, field)
-			case "profile_id":
-				return ec.fieldContext_UsersProfiles_profile_id(ctx, field)
-			case "created_on":
-				return ec.fieldContext_UsersProfiles_created_on(ctx, field)
-			case "created_by":
-				return ec.fieldContext_UsersProfiles_created_by(ctx, field)
-			case "modified_on":
-				return ec.fieldContext_UsersProfiles_modified_on(ctx, field)
-			case "modified_by":
-				return ec.fieldContext_UsersProfiles_modified_by(ctx, field)
-			case "is_active":
-				return ec.fieldContext_UsersProfiles_is_active(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UsersProfiles", field.Name)
 		},
 	}
 	return fc, nil
@@ -3120,14 +3171,14 @@ func (ec *executionContext) fieldContext_Tool_path(_ context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _UsersProfiles_group_id(ctx context.Context, field graphql.CollectedField, obj *model.UsersProfiles) (ret graphql.Marshaler) {
+func (ec *executionContext) _UsersProfiles_user_id(ctx context.Context, field graphql.CollectedField, obj *model.UsersProfiles) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_UsersProfiles_group_id,
+		ec.fieldContext_UsersProfiles_user_id,
 		func(ctx context.Context) (any, error) {
-			return obj.GroupID, nil
+			return obj.UserID, nil
 		},
 		nil,
 		ec.marshalNID2string,
@@ -3136,7 +3187,7 @@ func (ec *executionContext) _UsersProfiles_group_id(ctx context.Context, field g
 	)
 }
 
-func (ec *executionContext) fieldContext_UsersProfiles_group_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_UsersProfiles_user_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UsersProfiles",
 		Field:      field,
@@ -5234,13 +5285,85 @@ func (ec *executionContext) _GroupsProfiles(ctx context.Context, sel ast.Selecti
 		case "group_id":
 			out.Values[i] = ec._GroupsProfiles_group_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "group":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GroupsProfiles_group(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "profile_id":
 			out.Values[i] = ec._GroupsProfiles_profile_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "profile":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._GroupsProfiles_profile(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "created_on":
 			out.Values[i] = ec._GroupsProfiles_created_on(ctx, field, obj)
 		case "created_by":
@@ -5639,25 +5762,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getAllUsersProfiles":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getAllUsersProfiles(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "Empleado":
 			field := field
 
@@ -5802,8 +5906,8 @@ func (ec *executionContext) _UsersProfiles(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UsersProfiles")
-		case "group_id":
-			out.Values[i] = ec._UsersProfiles_group_id(ctx, field, obj)
+		case "user_id":
+			out.Values[i] = ec._UsersProfiles_user_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6252,6 +6356,20 @@ func (ec *executionContext) marshalNEmpleado2ᚖbackendᚑgqlᚋgraphᚋmodelᚐ
 		return graphql.Null
 	}
 	return ec._Empleado(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNGroup2backendᚑgqlᚋgraphᚋmodelᚐGroup(ctx context.Context, sel ast.SelectionSet, v model.Group) graphql.Marshaler {
+	return ec._Group(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGroup2ᚖbackendᚑgqlᚋgraphᚋmodelᚐGroup(ctx context.Context, sel ast.SelectionSet, v *model.Group) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Group(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {
@@ -6935,54 +7053,6 @@ func (ec *executionContext) marshalOTool2ᚖbackendᚑgqlᚋgraphᚋmodelᚐTool
 		return graphql.Null
 	}
 	return ec._Tool(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOUsersProfiles2ᚕᚖbackendᚑgqlᚋgraphᚋmodelᚐUsersProfiles(ctx context.Context, sel ast.SelectionSet, v []*model.UsersProfiles) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOUsersProfiles2ᚖbackendᚑgqlᚋgraphᚋmodelᚐUsersProfiles(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOUsersProfiles2ᚖbackendᚑgqlᚋgraphᚋmodelᚐUsersProfiles(ctx context.Context, sel ast.SelectionSet, v *model.UsersProfiles) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._UsersProfiles(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

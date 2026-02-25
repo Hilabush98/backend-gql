@@ -9,12 +9,12 @@ import (
 	"backend-gql/graph/generated"
 	"backend-gql/graph/model"
 	"context"
-	"fmt"
 )
 
 // GetAllGroups is the resolver for the getAllGroups field.
 func (r *queryResolver) GetAllGroups(ctx context.Context) ([]*model.Group, error) {
-	panic(fmt.Errorf("not implemented: GetAllGroups - getAllGroups"))
+	data := r.GroupsCache.GetAllGroups()
+	return data, nil
 }
 
 // Query returns generated.QueryResolver implementation.

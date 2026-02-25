@@ -20,13 +20,15 @@ type Group struct {
 }
 
 type GroupsProfiles struct {
-	GroupID    string  `json:"group_id"`
-	ProfileID  string  `json:"profile_id"`
-	CreatedOn  *string `json:"created_on,omitempty"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	ModifiedOn *string `json:"modified_on,omitempty"`
-	ModifiedBy *string `json:"modified_by,omitempty"`
-	IsActive   *bool   `json:"is_active,omitempty"`
+	GroupID    string   `json:"group_id"`
+	Group      *Group   `json:"group"`
+	ProfileID  string   `json:"profile_id"`
+	Profile    *Profile `json:"profile"`
+	CreatedOn  *string  `json:"created_on,omitempty"`
+	CreatedBy  *string  `json:"created_by,omitempty"`
+	ModifiedOn *string  `json:"modified_on,omitempty"`
+	ModifiedBy *string  `json:"modified_by,omitempty"`
+	IsActive   *bool    `json:"is_active,omitempty"`
 }
 
 type Mutation struct {
@@ -76,7 +78,7 @@ type Tool struct {
 }
 
 type UsersProfiles struct {
-	GroupID    string  `json:"group_id"`
+	UserID     string  `json:"user_id"`
 	ProfileID  string  `json:"profile_id"`
 	CreatedOn  *string `json:"created_on,omitempty"`
 	CreatedBy  *string `json:"created_by,omitempty"`

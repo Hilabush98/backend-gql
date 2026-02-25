@@ -1,10 +1,13 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type contextKey string
@@ -28,6 +31,14 @@ func Middleware() func(http.Handler) http.Handler {
 			log.Printf("DEBUG: Contenido crudo del header auth: [%s]", permsHeader)
 			var permissionsData PermissionResponse
 
+			bodyBytes, _ := io.ReadAll(r.Body)
+			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+			// 2. Verificar si es Introspección
+			if strings.Contains(string(bodyBytes), "IntrospectionQuery") {
+				next.ServeHTTP(w, r) // Bypass
+				return
+			}
 			if len(permsHeader) == 0 {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)

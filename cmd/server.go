@@ -47,8 +47,10 @@ func main() {
 	c := generated.Config{
 		Resolvers: &graph.Resolver{
 			ToolsCache:      cache.GlobalMatrixcTool,
-			ProfilesCache:   cache.GlobalMatrixcProfile,
-			PermissionCache: cache.GlobalMatrixPermission,
+			ProfilesCache:   cache.GlobalMatrixcProfiles,
+			RProfilesTools:  cache.GlobalMatrixProfilesTools,
+			RGroupsProfiles: cache.GlobalMatrixrGroupsProfiles,
+			GroupsCache:     cache.GlobalMatrixcGroups,
 			DB:              db.DB,
 		},
 	}
@@ -64,7 +66,7 @@ func main() {
 		for _, p := range permsData.Permissions.ProfileID {
 
 			pID := p
-			assignedPerm := cache.GlobalMatrixPermission.LookInMatrix(pID, tID, actions)
+			assignedPerm := cache.GlobalMatrixProfilesTools.GetProfileByKey(pID, tID, actions)
 			if assignedPerm != "" {
 				log.Printf("[AUTH] Match dinámico: Profiles %s - Tool %s", tID, pID)
 				return next(ctx)
