@@ -1,49 +1,51 @@
 package cache
 
 import (
+	"backend-gql/internal/logs"
 	"database/sql"
-	"log"
+	"fmt"
 )
 
 func InitCache(db *sql.DB) error {
 
 	GlobalMatrixProfilesTools = InitMatrixPermission()
 	err := GlobalMatrixProfilesTools.LoadFromDB(db)
-	//GlobalMatrixPermission.PrintMatrix()
 	if err != nil {
-		log.Fatalf("Error crítico cargando permisos: %v", err)
+		logs.Error("internal/cache/InitCache", fmt.Sprintf("Error: %w", err))
 	}
-	log.Println("Matriz de permisos cargada exitosamente.")
+
+	logs.Debug("internal/cache/InitCache", "Matriz de ProfilesTools cargada exitosamente.")
+
 	GlobalMatrixcTool = InitToolsMap()
 	err = GlobalMatrixcTool.LoadFromDB(db)
-	//GlobalMatrixcTool.PrintMapTool()
 	if err != nil {
-		log.Fatalf("Error crítico cargando Tools: %v", err)
+
+		logs.Error("internal/cache/InitCache", fmt.Sprintf("Error: %w", err))
 	}
-	log.Println("Matriz de Tools cargada exitosamente.")
+	logs.Debug("internal/cache/InitCache", "Matriz de Tools cargada exitosamente.")
 
 	GlobalMatrixcProfiles = InitProfilesMap()
 	err = GlobalMatrixcProfiles.LoadFromDB(db)
-	//GlobalMatrixcProfile.PrintMapTool()
 	if err != nil {
-		log.Fatalf("Error crítico cargando Profiles: %v", err)
+		logs.Error("internal/cache/InitCache", fmt.Sprintf("Error: %w", err))
 	}
-	log.Println("Matriz de Profiles cargada exitosamente.")
+	logs.Debug("internal/cache/InitCache", "Matriz de Profiles cargada exitosamente.")
 
 	GlobalMatrixcGroups = InitGroupsMap()
 	err = GlobalMatrixcGroups.LoadFromDB(db)
-	//GlobalMatrixcGroups.PrintMapGroups()
 	if err != nil {
-		log.Fatalf("Error crítico cargando Groups: %v", err)
+		logs.Error("internal/cache/InitCache", fmt.Sprintf("Error: %w", err))
 	}
-	log.Println("Matriz de Groups cargada exitosamente.")
+	logs.Debug("internal/cache/InitCache", "Matriz de Groups cargada exitosamente")
 
 	GlobalMatrixrGroupsProfiles = InitGroupsProfilesMap()
 	err = GlobalMatrixrGroupsProfiles.LoadFromDB(db)
-	//GlobalMatrixrGroupsProfiles.PrintMatrix()
+
 	if err != nil {
-		log.Fatalf("Error crítico cargando Groups: %v", err)
+		logs.Error("internal/cache/InitCache", fmt.Sprintf("Error: %w", err))
+
 	}
-	log.Println("Matriz de Groups cargada exitosamente.")
+	logs.Debug("internal/cache/InitCache", "Matriz de GroupsProflies cargada exitosamente.")
+
 	return err
 }

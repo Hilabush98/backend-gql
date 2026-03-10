@@ -35,6 +35,7 @@ func (r *queryResolver) Empleado(ctx context.Context) ([]*model.Empleado, error)
 
 		if err := rows.Scan(&dia, &sucursal, &cliente_id, &product, &signo, &unids, &price); err != nil {
 			log.Println("Error al leer: ", err.Error())
+			//logs.Error("resolvers/schema.nomina")
 			continue
 		}
 		//fmt.Println("Row", dia, sucursal, cliente_id, product, signo, unids, price)

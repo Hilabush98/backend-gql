@@ -1,6 +1,7 @@
 package db
 
 import (
+	"backend-gql/internal/logs"
 	"database/sql"
 	"fmt"
 	"os"
@@ -26,12 +27,10 @@ func loadConfigDBOracle(environment string) DBconfigOracle {
 	host := os.Getenv("DB_HOST")
 	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
 	service := os.Getenv("DB_SERVICE")
-	println("User", user)
-	println("PASS", password)
-	println("service", service)
-	println("HOST", host)
+
 	if err != nil {
-		println("Error al cargar la variable: ", err)
+		logs.Error("internal/db/oracle.go/loadConfigDBOracle", fmt.Sprintf("error de ping a Oracle: %w", err))
+
 	}
 
 	if environment == "PROD" {
@@ -57,10 +56,10 @@ func loadConfigDBOracle(environment string) DBconfigOracle {
 func ConnectOracle(environment string) (*sql.DB, error) {
 	cfg_ocp_erp_qa := loadConfigDBOracle(environment)
 	dsn := fmt.Sprintf("%s/%s@%s:%d/%s", cfg_ocp_erp_qa.User, cfg_ocp_erp_qa.Password, cfg_ocp_erp_qa.Host, cfg_ocp_erp_qa.Port, cfg_ocp_erp_qa.Service)
-	println("DSN:", dsn)
 	db, err := sql.Open("godror", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("error al abrir conexión: %w", err)
+		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede abrir la conexion Details: "+fmt.Sprintf("Error: %w", err))
+		return nil, err
 	}
 
 	db.SetMaxOpenConns(50)
@@ -72,10 +71,10 @@ func ConnectOracle(environment string) (*sql.DB, error) {
 	db.SetConnMaxIdleTime(2 * time.Minute)
 
 	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("error de ping a Oracle: %w", err)
+		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede hacer ping Details: "+fmt.Sprintf("Error: %w", err))
+		return nil, err
 	}
-
-	fmt.Printf("Pool de conexiones inicializado (Max: %d)\n", 50)
+	logs.Debug("Pool de conexiones iniciado", fmt.Sprintf("Pool de conexiones inicializado (Max: %d)", 50))
 
 	return db, nil
 }

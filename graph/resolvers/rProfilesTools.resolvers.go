@@ -8,6 +8,7 @@ package graph
 import (
 	"backend-gql/graph/generated"
 	"backend-gql/graph/model"
+	"backend-gql/internal/logs"
 	"context"
 	"fmt"
 )
@@ -28,9 +29,11 @@ func (r *profilesToolsResolver) Tool(ctx context.Context, obj *model.ProfilesToo
 func (r *queryResolver) UpdatePermissionCache(ctx context.Context) ([]*model.ProfilesTools, error) {
 	data, err := r.RProfilesTools.UpdateMatrix(r.DB)
 	if err != nil {
+		logs.Error("resolver/rProfilesTools.resolver.go/UpdatePermissionCache", fmt.Sprintf("Error: %w", err))
 		return nil, fmt.Errorf("error:", err)
+	} else {
+		logs.Debug("resolver/rProfilesTools.resolver.go/UpdatePermissionCache", "Matriz de permisos actualizada")
 	}
-	fmt.Println("data actualizada")
 	return data, err
 }
 

@@ -6,6 +6,7 @@ import (
 	"backend-gql/internal/auth"
 	"backend-gql/internal/cache"
 	"backend-gql/internal/db"
+	"backend-gql/internal/logs"
 	"context"
 	"fmt"
 	"log"
@@ -25,17 +26,27 @@ import (
 const defaultPort = "8080"
 
 func main() {
-	err := env.Load()
+	err := logs.InitFilesLogs()
 	if err != nil {
-		log.Fatal("Error al cargar el archivo .env,ERROR: ", err)
+		logs.Error("cmd/server/main", fmt.Sprintf("Error: %w", err))
+	}
+	logs.Debug("server.go", "Iniciando server")
+
+	err = env.Load()
+	if err != nil {
+		fmt.Errorf("Error al cargar el archivo  .env")
+		logs.Error("cmd/server/main", fmt.Sprintf("Error: %w", err))
 	}
 	err = db.InitOracleERP("PROD")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error:", err)
+		logs.Error("main.go", fmt.Sprintf("Error al iniciar la base de datos: ", err))
 	}
 	defer db.DB.Close()
+	logs.Debug("main", "Base de datos cargada")
 	err = cache.InitCache(db.DB)
 	if err != nil {
+		logs.Error("main", fmt.Sprintf("Error: ", err))
 		log.Fatalf("Error: %v", err)
 	}
 
@@ -56,9 +67,9 @@ func main() {
 	}
 	c.Directives.HasPermission = func(ctx context.Context, obj interface{}, next graphql.Resolver, actions []string) (interface{}, error) {
 		permsData := auth.PermissionsFromContext(ctx)
-		log.Println("Action 1:", actions[0], "Action 2:", actions[1])
 		if permsData == nil {
-			return nil, fmt.Errorf("acceso denegado: cabecera de permisos vacía")
+			logs.Error("Server.go", "Error: Acceso denegado: cabecera de permisos vacía")
+			return nil, fmt.Errorf("Acceso denegado: cabecera de permisos vacía")
 		}
 
 		tID := *permsData.Permissions.ToolID
@@ -68,14 +79,14 @@ func main() {
 			pID := p
 			assignedPerm := cache.GlobalMatrixProfilesTools.GetProfileByKey(pID, tID, actions)
 			if assignedPerm != "" {
-				log.Printf("[AUTH] Match dinámico: Profiles %s - Tool %s", tID, pID)
 				return next(ctx)
 
 			}
 
 		}
+		logs.Error("server.go", "Access Denied: Role without permissions")
 
-		return nil, fmt.Errorf("acceso denegado: no se encontró relación en la matriz de permisos")
+		return nil, fmt.Errorf("Access Denied: Role without permissions")
 	}
 	srv := handler.New(generated.NewExecutableSchema(c))
 
@@ -93,7 +104,7 @@ func main() {
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", router)
-
+	logs.Debug("main.go", fmt.Sprintf("connect to http://localhost:%s/ for GraphQL playground", port))
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

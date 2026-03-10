@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"backend-gql/internal/logs"
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -28,15 +29,13 @@ func Middleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			permsHeader := r.Header.Get("auth")
-			log.Printf("DEBUG: Contenido crudo del header auth: [%s]", permsHeader)
 			var permissionsData PermissionResponse
 
 			bodyBytes, _ := io.ReadAll(r.Body)
 			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-			// 2. Verificar si es Introspección
 			if strings.Contains(string(bodyBytes), "IntrospectionQuery") {
-				next.ServeHTTP(w, r) // Bypass
+				next.ServeHTTP(w, r)
 				return
 			}
 			if len(permsHeader) == 0 {
@@ -51,7 +50,7 @@ func Middleware() func(http.Handler) http.Handler {
 			if permsHeader != "" {
 				err := json.Unmarshal([]byte(permsHeader), &permissionsData)
 				if err != nil {
-					log.Printf("Error decodificando JSON de permisos: %v", err)
+					logs.Error("Middleware", fmt.Sprintf("Error: %w", err))
 				}
 			}
 			ctx := context.WithValue(r.Context(), permissionsKey, &permissionsData)

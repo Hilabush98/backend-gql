@@ -72,7 +72,6 @@ func (p *RProfilesToolsMap) LoadFromDB(db *sql.DB) error {
 	return nil
 }
 func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, error) {
-	log.Println("Cache actualizado")
 
 	query := `SELECT PROFILE_ID,TOOL_ID,CREATED_ON,CREATED_BY,MODIFIED_ON,MODIFIED_BY,IS_ACTIVE,OPERATIONS FROM R_PROFILES_TOOLS WHERE IS_ACTIVE =1 `
 
