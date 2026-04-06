@@ -101,7 +101,6 @@ func (g *RGroupsProfilesMap) UpdateMatrix(db *sql.DB) ([]*model.GroupsProfiles, 
 
 	query := `SELECT GROUP_ID, PROFILE_ID FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1`
 	var data []*model.GroupsProfiles
-
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar DB para actualización:", err)

@@ -85,7 +85,6 @@ func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, er
 	cMatrix := make([]*model.ProfilesTools, 0)
 
 	for rows.Next() {
-		var p model.ProfilesTools
 		var profileID, toolID, operations string
 		var createdOn, createdBy, modifiedOn, modifiedBy *string
 		var isActive bool
@@ -106,7 +105,7 @@ func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, er
 			IsActive:   &isActive,
 			Operations: &operations,
 		})
-		newMatrix[toolID][profileID] = strings.ToUpper(strings.TrimSpace(*p.Operations))
+		newMatrix[toolID][profileID] = strings.ToUpper(strings.TrimSpace(operations))
 	}
 
 	p.mu.Lock()
