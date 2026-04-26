@@ -29,7 +29,7 @@ func loadConfigDBOracle(environment string) DBconfigOracle {
 	service := os.Getenv("DB_SERVICE")
 
 	if err != nil {
-		logs.Error("internal/db/oracle.go/loadConfigDBOracle", fmt.Sprintf("error de ping a Oracle: %w", err))
+		logs.Error("internal/db/oracle.go/loadConfigDBOracle", fmt.Sprintf("error al leer DB_PORT: %v", err))
 
 	}
 
@@ -58,7 +58,7 @@ func ConnectOracle(environment string) (*sql.DB, error) {
 	dsn := fmt.Sprintf("%s/%s@%s:%d/%s", cfg_ocp_erp_qa.User, cfg_ocp_erp_qa.Password, cfg_ocp_erp_qa.Host, cfg_ocp_erp_qa.Port, cfg_ocp_erp_qa.Service)
 	db, err := sql.Open("godror", dsn)
 	if err != nil {
-		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede abrir la conexion Details: "+fmt.Sprintf("Error: %w", err))
+		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede abrir la conexion Details: "+fmt.Sprintf("Error: %v", err))
 		return nil, err
 	}
 
@@ -71,7 +71,7 @@ func ConnectOracle(environment string) (*sql.DB, error) {
 	db.SetConnMaxIdleTime(2 * time.Minute)
 
 	if err = db.Ping(); err != nil {
-		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede hacer ping Details: "+fmt.Sprintf("Error: %w", err))
+		logs.Error("internal/db/oracle.go/ConnectOracle", "No se puede hacer ping Details: "+fmt.Sprintf("Error: %v", err))
 		return nil, err
 	}
 	logs.Debug("Pool de conexiones iniciado", fmt.Sprintf("Pool de conexiones inicializado (Max: %d)", 50))

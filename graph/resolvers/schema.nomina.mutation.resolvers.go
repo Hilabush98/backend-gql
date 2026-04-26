@@ -14,7 +14,7 @@ import (
 
 // CreateEmpleado is the resolver for the createEmpleado field.
 func (r *mutationResolver) CreateEmpleado(ctx context.Context, input model.InputEmpleado) (*model.Empleado, error) {
-	panic(fmt.Errorf("not implemented: CreateEmpleado - createEmpleado"))
+	return nil, fmt.Errorf("CreateEmpleado resolver is not implemented yet")
 }
 
 // Mutation returns generated.MutationResolver implementation.

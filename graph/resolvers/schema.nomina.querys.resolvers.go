@@ -7,50 +7,16 @@ package graph
 
 import (
 	"backend-gql/graph/model"
-	"backend-gql/internal/db"
 	"context"
 	"fmt"
-	"log"
 )
 
 // Empleado is the resolver for the Empleado field.
 func (r *queryResolver) Empleado(ctx context.Context) ([]*model.Empleado, error) {
-	conn_ocp, err := db.ConnectOracle("ocp_qa")
-	query := `
-	SELECT* FROM C_PROFILES
-	`
-	rows, err := conn_ocp.Query(query)
-	if err != nil {
-		log.Fatalf("Error ejecutando query: %v", err)
-	}
-
-	for rows.Next() {
-		var dia string
-		var sucursal int
-		var cliente_id string
-		var product string
-		var signo string
-		var unids string
-		var price string
-
-		if err := rows.Scan(&dia, &sucursal, &cliente_id, &product, &signo, &unids, &price); err != nil {
-			log.Println("Error al leer: ", err.Error())
-			//logs.Error("resolvers/schema.nomina")
-			continue
-		}
-		//fmt.Println("Row", dia, sucursal, cliente_id, product, signo, unids, price)
-
-	}
-	data := []*model.Empleado{
-		{
-			ID:     "1",
-			Nombre: "Prueba",
-		},
-	}
-	return data, nil
+	return nil, fmt.Errorf("Empleado resolver is not implemented yet")
 }
 
 // GetAllEmpleados is the resolver for the getAllEmpleados field.
 func (r *queryResolver) GetAllEmpleados(ctx context.Context) ([]*model.Empleado, error) {
-	panic(fmt.Errorf("not implemented: GetAllEmpleados - getAllEmpleados"))
+	return nil, fmt.Errorf("GetAllEmpleados resolver is not implemented yet")
 }

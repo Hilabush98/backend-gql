@@ -3,7 +3,6 @@ package cache
 import (
 	"backend-gql/graph/model"
 	"database/sql"
-
 	"fmt"
 	"log"
 	"strings"
@@ -27,7 +26,6 @@ func InitMatrixPermission() *RProfilesToolsMap {
 }
 
 func (p *RProfilesToolsMap) LoadFromDB(db *sql.DB) error {
-
 	query := `SELECT PROFILE_ID,TOOL_ID,CREATED_ON,CREATED_BY,MODIFIED_ON,MODIFIED_BY,IS_ACTIVE,OPERATIONS FROM R_PROFILES_TOOLS WHERE IS_ACTIVE =1 `
 
 	rows, err := db.Query(query)
@@ -71,13 +69,13 @@ func (p *RProfilesToolsMap) LoadFromDB(db *sql.DB) error {
 
 	return nil
 }
-func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, error) {
 
+func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, error) {
 	query := `SELECT PROFILE_ID,TOOL_ID,CREATED_ON,CREATED_BY,MODIFIED_ON,MODIFIED_BY,IS_ACTIVE,OPERATIONS FROM R_PROFILES_TOOLS WHERE IS_ACTIVE =1 `
 
 	rows, err := db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("error al consultar DB para actualización:", err)
+		return nil, fmt.Errorf("error al consultar DB para actualizacion: %w", err)
 	}
 	defer rows.Close()
 
@@ -115,23 +113,24 @@ func (p *RProfilesToolsMap) UpdateMatrix(db *sql.DB) ([]*model.ProfilesTools, er
 
 	return cMatrix, err
 }
+
 func (p *RProfilesToolsMap) PrintMatrix() {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	log.Println("\n=== MATRIZ DE PERMISOS ACTUAL ===")
 	if len(p.profilesTools) == 0 {
-		log.Println("La matriz está vacía.")
+		log.Println("La matriz esta vacia.")
 		return
 	}
 	for tools, profiles := range p.profilesTools {
 		log.Println("TOOL", tools)
-		for profile_id, operation := range profiles {
-			log.Printf("profile: %s operation: %s \n", profile_id, operation)
-
+		for profileID, operation := range profiles {
+			log.Printf("profile: %s operation: %s\n", profileID, operation)
 		}
 	}
 }
+
 func (m *RProfilesToolsMap) GetProfileByKey(profileID string, toolID string, actions []string) string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -152,15 +151,15 @@ func (m *RProfilesToolsMap) GetProfileByKey(profileID string, toolID string, act
 
 	for _, ope := range actions {
 		if strings.Contains(permission, ope) {
-			log.Printf("Match encontrado: Perfil %s, Herramienta %s, Acción %s", profileID, toolID, ope)
+			log.Printf("Match encontrado: Perfil %s, Herramienta %s, Accion %s", profileID, toolID, ope)
 			return permission
 		}
 	}
 
 	return ""
 }
-func (p *RProfilesToolsMap) GetAllProfilesTools() []*model.ProfilesTools {
 
+func (p *RProfilesToolsMap) GetAllProfilesTools() []*model.ProfilesTools {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.cProfilesTools

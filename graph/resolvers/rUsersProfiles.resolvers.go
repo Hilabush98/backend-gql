@@ -13,5 +13,5 @@ import (
 
 // GetAllUsersProfiles is the resolver for the getAllUsersProfiles field.
 func (r *queryResolver) GetAllUsersProfiles(ctx context.Context) ([]*model.UsersProfiles, error) {
-	panic(fmt.Errorf("not implemented: GetAllUsersProfiles - getAllUsersProfiles"))
+	return nil, fmt.Errorf("GetAllUsersProfiles resolver is not implemented yet")
 }

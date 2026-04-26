@@ -25,8 +25,7 @@ func InitGroupsProfilesMap() *RGroupsProfilesMap {
 }
 
 func (p *RGroupsProfilesMap) LoadFromDB(db *sql.DB) error {
-
-	query := `SELECT GROUP_ID, PROFILE_ID, CREATED_ON,CREATED_BY,MODIFIED_ON, MODIFIED_BY, IS_aCTIVE FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1 `
+	query := `SELECT GROUP_ID, PROFILE_ID, CREATED_ON,CREATED_BY,MODIFIED_ON, MODIFIED_BY, IS_ACTIVE FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1 `
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -63,21 +62,20 @@ func (p *RGroupsProfilesMap) LoadFromDB(db *sql.DB) error {
 	p.mu.Unlock()
 
 	return nil
-
 }
 
 func (p *RGroupsProfilesMap) PrintMatrix() {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
+
 	log.Println("\n=== MATRIZ DE PERMISOS ACTUAL ===")
 	if len(p.groupsProfiles) == 0 {
-		log.Println("La matriz está vacía.")
+		log.Println("La matriz esta vacia.")
 		return
 	}
 
-	for group_id, profile_id := range p.groupsProfiles {
-		log.Printf("group: %s profile: %s \n", group_id, profile_id)
-
+	for groupID, profileID := range p.groupsProfiles {
+		log.Printf("group: %s profile: %s\n", groupID, profileID)
 	}
 
 	for _, g := range p.cGroupsProfiles {
@@ -90,20 +88,20 @@ func (g *RGroupsProfilesMap) GetGroupProfileById(id string) string {
 	defer g.mu.RUnlock()
 	return g.groupsProfiles[id]
 }
+
 func (g *RGroupsProfilesMap) GetAllGroupsProfiles() []*model.GroupsProfiles {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-
 	return g.cGroupsProfiles
 }
 
 func (g *RGroupsProfilesMap) UpdateMatrix(db *sql.DB) ([]*model.GroupsProfiles, error) {
-
 	query := `SELECT GROUP_ID, PROFILE_ID FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1`
 	var data []*model.GroupsProfiles
+
 	rows, err := db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("error al consultar DB para actualización:", err)
+		return nil, fmt.Errorf("error al consultar DB para actualizacion: %w", err)
 	}
 	defer rows.Close()
 
@@ -111,17 +109,17 @@ func (g *RGroupsProfilesMap) UpdateMatrix(db *sql.DB) ([]*model.GroupsProfiles, 
 
 	for rows.Next() {
 		var p model.GroupsProfiles
-
 		if err := rows.Scan(&p.GroupID, &p.ProfileID); err != nil {
-			log.Println("Error al leer: ", err.Error())
+			log.Println("Error al leer:", err.Error())
 			return data, err
 		}
 		data = append(data, &p)
-		newMatrix[p.GroupID] = strings.ToUpper(strings.TrimSpace(*&p.ProfileID))
+		newMatrix[p.GroupID] = strings.ToUpper(strings.TrimSpace(p.ProfileID))
 	}
 
 	g.mu.Lock()
 	g.groupsProfiles = newMatrix
+	g.cGroupsProfiles = data
 	g.mu.Unlock()
 
 	return data, err

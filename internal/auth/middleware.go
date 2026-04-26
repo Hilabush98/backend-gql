@@ -2,13 +2,10 @@ package auth
 
 import (
 	"backend-gql/internal/logs"
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
 )
 
 type contextKey string
@@ -27,34 +24,29 @@ type PermissionResponse struct {
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			permsHeader := r.Header.Get("auth")
 			var permissionsData PermissionResponse
-
-			bodyBytes, _ := io.ReadAll(r.Body)
-			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-			if strings.Contains(string(bodyBytes), "IntrospectionQuery") {
-				next.ServeHTTP(w, r)
-				return
-			}
 			if len(permsHeader) == 0 {
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusBadRequest)
+				w.WriteHeader(http.StatusUnauthorized)
 				json.NewEncoder(w).Encode(map[string]string{
-					"error": "Header error",
+					"error": "missing auth header",
 				})
 				return
 			}
 
-			if permsHeader != "" {
-				err := json.Unmarshal([]byte(permsHeader), &permissionsData)
-				if err != nil {
-					logs.Error("Middleware", fmt.Sprintf("Error: %w", err))
-				}
+			err := json.Unmarshal([]byte(permsHeader), &permissionsData)
+			if err != nil {
+				logs.Error("internal/auth/middleware.go", fmt.Sprintf("invalid auth header json: %v", err))
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": "invalid auth header json",
+				})
+				return
 			}
+
 			ctx := context.WithValue(r.Context(), permissionsKey, &permissionsData)
-			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

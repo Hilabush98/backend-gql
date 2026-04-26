@@ -29,8 +29,8 @@ func (r *profilesToolsResolver) Tool(ctx context.Context, obj *model.ProfilesToo
 func (r *queryResolver) UpdatePermissionCache(ctx context.Context) ([]*model.ProfilesTools, error) {
 	data, err := r.RProfilesTools.UpdateMatrix(r.DB)
 	if err != nil {
-		logs.Error("resolver/rProfilesTools.resolver.go/UpdatePermissionCache", fmt.Sprintf("Error: %w", err))
-		return nil, fmt.Errorf("error:", err)
+		logs.Error("resolver/rProfilesTools.resolver.go/UpdatePermissionCache", fmt.Sprintf("Error: %v", err))
+		return nil, fmt.Errorf("error updating permission cache: %w", err)
 	} else {
 		logs.Debug("resolver/rProfilesTools.resolver.go/UpdatePermissionCache", "Matriz de permisos actualizada")
 	}
