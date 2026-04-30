@@ -16,5 +16,6 @@ type Resolver struct {
 	ProfilesCache   *cache.CProfilesMap
 	GroupsCache     *cache.CGroupsMap
 	RGroupsProfiles *cache.RGroupsProfilesMap
-	DB              *sql.DB
+	DB     *sql.DB
+	DBAuth *sql.DB
 }

@@ -33,22 +33,33 @@ func main() {
 	}
 	logs.Debug("server.go", "Iniciando server")
 
-	err = env.Load()
+	err = env.Load("cmd/.env")
 	if err != nil {
 		logs.Error("cmd/server/main", fmt.Sprintf("Error al cargar el archivo .env: %v", err))
 	}
 
-	err = db.InitOracleERP("PROD")
+
+
+	err = db.InitPostgresAuth()
 	if err != nil {
-		logs.Error("cmd/server/main", fmt.Sprintf("Error al iniciar la base de datos: %v", err))
-		log.Fatalf("Error al iniciar la base de datos: %v", err)
+		logs.Error("cmd/server/main", fmt.Sprintf("Error al iniciar la base de datos Auth: %v", err))
+		log.Fatalf("Error al iniciar la base de datos Auth: %v", err)
 	}
-	if db.DB != nil {
-		defer db.DB.Close()
+	if db.DBAuth != nil {
+		defer db.DBAuth.Close()
+	}
+
+	err = db.InitPostgresApp()
+	if err != nil {
+		logs.Error("cmd/server/main", fmt.Sprintf("Error al iniciar la base de datos App: %v", err))
+		log.Fatalf("Error al iniciar la base de datos App: %v", err)
+	}
+	if db.DBApp != nil {
+		defer db.DBApp.Close()
 	}
 
 	logs.Debug("main", "Base de datos cargada")
-	err = cache.InitCache(db.DB)
+	err = cache.InitCache(db.DBApp)
 	if err != nil {
 		logs.Error("cmd/server/main", fmt.Sprintf("Error al iniciar cache: %v", err))
 		log.Fatalf("Error al iniciar cache: %v", err)
@@ -66,7 +77,8 @@ func main() {
 			RProfilesTools:  cache.GlobalMatrixProfilesTools,
 			RGroupsProfiles: cache.GlobalMatrixrGroupsProfiles,
 			GroupsCache:     cache.GlobalMatrixcGroups,
-			DB:              db.DB,
+			DB:              db.DBApp,
+			DBAuth:          db.DBAuth,
 		},
 	}
 

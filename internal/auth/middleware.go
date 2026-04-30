@@ -2,10 +2,13 @@ package auth
 
 import (
 	"backend-gql/internal/logs"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 )
 
 type contextKey string
@@ -25,6 +28,22 @@ func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			permsHeader := r.Header.Get("auth")
+			var body map[string]interface{}
+			if r.Body != nil {
+				bodyBytes, _ := io.ReadAll(r.Body)
+				_ = json.Unmarshal(bodyBytes, &body)
+
+				// restaurar body
+				r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+				// 🔍 Detectar introspection correctamente
+				if query, ok := body["query"].(string); ok {
+					if strings.Contains(query, "__schema") || strings.Contains(query, "__type") {
+						next.ServeHTTP(w, r)
+						return
+					}
+				}
+			}
 			var permissionsData PermissionResponse
 			if len(permsHeader) == 0 {
 				w.Header().Set("Content-Type", "application/json")

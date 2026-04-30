@@ -2,6 +2,11 @@
 
 package model
 
+type AuthPayload struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 type Empleado struct {
 	ID     string `json:"id"`
 	Nombre string `json:"nombre"`
@@ -32,6 +37,12 @@ type GroupsProfiles struct {
 }
 
 type Mutation struct {
+}
+
+type PayloadData struct {
+	Profiles []*int `json:"profiles"`
+	Name     string `json:"name"`
+	LastName string `json:"last_name"`
 }
 
 type Profile struct {
@@ -77,6 +88,29 @@ type Tool struct {
 	Path          *string `json:"path,omitempty"`
 }
 
+type User struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	LastName       string  `json:"last_name"`
+	SecondLastName *string `json:"second_last_name,omitempty"`
+	Email          string  `json:"email"`
+	HashPassword   string  `json:"hash_password"`
+	CreatedOn      *string `json:"created_on,omitempty"`
+	ModifiedOn     *string `json:"modified_on,omitempty"`
+	IsActive       *bool   `json:"is_active,omitempty"`
+}
+
+type UserCreated struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	LastName       string  `json:"last_name"`
+	SecondLastName *string `json:"second_last_name,omitempty"`
+	Email          string  `json:"email"`
+	CreatedOn      *string `json:"created_on,omitempty"`
+	ModifiedOn     *string `json:"modified_on,omitempty"`
+	IsActive       *bool   `json:"is_active,omitempty"`
+}
+
 type UsersProfiles struct {
 	UserID     string  `json:"user_id"`
 	ProfileID  string  `json:"profile_id"`
@@ -109,6 +143,11 @@ type InputGroupsProfiles struct {
 	ModifiedBy *string `json:"modified_by,omitempty"`
 }
 
+type InputLoginUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type InputProfile struct {
 	ProfileID   string  `json:"profile_id"`
 	Name        *string `json:"name,omitempty"`
@@ -127,6 +166,14 @@ type InputProfilesTools struct {
 	CreatedBy   *string `json:"created_by,omitempty"`
 	Operations  *string `json:"operations,omitempty"`
 	IsActive    *bool   `json:"is_active,omitempty"`
+}
+
+type InputRegisterUser struct {
+	Name           string  `json:"name"`
+	LastName       string  `json:"last_name"`
+	SecondLastName *string `json:"second_last_name,omitempty"`
+	Email          string  `json:"email"`
+	Password       string  `json:"password"`
 }
 
 type InputUsersProfiles struct {

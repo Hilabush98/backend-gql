@@ -21,7 +21,7 @@ func InitProfilesMap() *CProfilesMap {
 }
 func (p *CProfilesMap) LoadFromDB(db *sql.DB) error {
 
-	query := `SELECT Profile_ID, NAME, DESCRIPTION, CREATED_ON, CREATED_BY, MODIFIED_ON, MODIFIED_BY, ORDER_BY, IS_ACTIVE FROM c_Profiles WHERE IS_ACTIVE =1 `
+	query := `SELECT Profile_ID, NAME, DESCRIPTION, CREATED_ON, CREATED_BY, MODIFIED_ON, MODIFIED_BY, ORDER_BY, IS_ACTIVE FROM APP.c_Profiles WHERE IS_ACTIVE =true `
 
 	rows, err := db.Query(query)
 	if err != nil {

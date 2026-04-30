@@ -25,7 +25,7 @@ func InitGroupsProfilesMap() *RGroupsProfilesMap {
 }
 
 func (p *RGroupsProfilesMap) LoadFromDB(db *sql.DB) error {
-	query := `SELECT GROUP_ID, PROFILE_ID, CREATED_ON,CREATED_BY,MODIFIED_ON, MODIFIED_BY, IS_ACTIVE FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1 `
+	query := `SELECT GROUP_ID, PROFILE_ID, CREATED_ON,CREATED_BY,MODIFIED_ON, MODIFIED_BY, IS_ACTIVE FROM APP.R_GROUPS_PROFILES WHERE IS_ACTIVE =true `
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -96,7 +96,7 @@ func (g *RGroupsProfilesMap) GetAllGroupsProfiles() []*model.GroupsProfiles {
 }
 
 func (g *RGroupsProfilesMap) UpdateMatrix(db *sql.DB) ([]*model.GroupsProfiles, error) {
-	query := `SELECT GROUP_ID, PROFILE_ID FROM R_GROUPS_PROFILES WHERE IS_ACTIVE =1`
+	query := `SELECT GROUP_ID, PROFILE_ID FROM APP.R_GROUPS_PROFILES WHERE IS_ACTIVE =true`
 	var data []*model.GroupsProfiles
 
 	rows, err := db.Query(query)
