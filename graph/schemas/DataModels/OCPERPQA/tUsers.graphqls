@@ -1,0 +1,17 @@
+type User {
+  id: ID!
+  name: String!
+  last_name: String!
+  second_last_name: String
+  email:String!
+  hash_password:String!
+  created_on: String
+  modified_on: String
+  is_active: Boolean
+}
+
+
+extend type Query {
+  getAllUsers: [User]
+
+}

@@ -1,0 +1,32 @@
+input inputRegisterUser {
+  name: String!
+  last_name:String!
+  second_last_name: String
+  email:String!
+  password:String!
+}
+
+input inputLoginUser {
+    email:String!
+    password:String!
+}
+
+type UserCreated{
+    id:ID!
+    name: String!
+    last_name: String!
+    second_last_name: String
+    email:String!
+    created_on: String
+    modified_on: String
+    is_active: Boolean
+}
+type PayloadData{
+  profiles:[Int]!
+  name:String!
+  last_name:String!
+}
+type AuthPayload{
+    access_token:String!
+    refresh_token:String!
+}

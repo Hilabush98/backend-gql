@@ -1,0 +1,4 @@
+extend type Query {
+  loginUser(input:inputLoginUser!):AuthPayload
+  refresh_token(tokenRefresh:String!):AuthPayload
+}
